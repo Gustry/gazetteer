@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 ################################################################################
 #
 # Copyright 2015 Crown copyright (c)
@@ -10,14 +11,15 @@
 ################################################################################
 
 
+from builtins import str
 import os.path
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 from qgis.core import *
 
-from LINZ.gazetteer.gui.Controller import Controller
+from .LINZ.gazetteer.gui.Controller import Controller
 
 class Layers( QObject ):
 
@@ -88,7 +90,7 @@ class Layers( QObject ):
             self._transform = transform
             mapview = transform.transformBoundingBox( extent )
             rect = QgsGeometry.fromRect( mapview )
-            wkt = str(rect.exportToWkt())
+            wkt = str(rect.asWkt())
             self._controller.setMapExtentsNZGD2000( wkt )
         except:
             raise
@@ -149,8 +151,8 @@ class Layers( QObject ):
             glayer['layer'] = None
 
         # Check for existing layers matching data source
-        registry = QgsMapLayerRegistry.instance()
-        for maplayer in registry.mapLayers().values():
+        registry = QgsProject.instance()
+        for maplayer in list(registry.mapLayers().values()):
             if maplayer.type() != QgsMapLayer.VectorLayer:
                 continue
             lyrid = str(maplayer.customProperty(Layers.idProperty))
@@ -196,7 +198,7 @@ class Layers( QObject ):
                         layer.loadNamedStyle( qml )
                     except:
                         pass
-                QgsMapLayerRegistry.instance().addMapLayer( layer )
+                QgsProject.instance().addMapLayer( layer )
                 updated = True
             if 'form' in ldef:
                 layer.setReadOnly(False)
@@ -434,13 +436,13 @@ class Layers( QObject ):
                 continue
             if layer.id() in gazlayers:
                 continue
-            geomlist = [f.geometryAndOwnership() for f in layer.selectedFeatures()]
+            geomlist = [f.geometry() for f in layer.selectedFeatures()]
             if geomlist:
                 if layer.crs() != self._dbCrs:
                     ct = QgsCoordinateTransform( layer.crs(), self._dbCrs )
                     for g in geomlist:
                         g.transform(ct)
-                gtype = layer.geometryType()
+                gtype = layer.wkbType()
                 if gtype not in geometries:
                     geometries[gtype]=[]
                 geometries[gtype].extend( geomlist)
@@ -467,7 +469,7 @@ class Layers( QObject ):
                 continue
             geomlist = geometries[gtype[0]]
             layer = self._layers[gtype[2]]['layer']
-            fields=layer.pendingFields()
+            fields=layer.fields()
             editable = layer.isEditable()
             if not editable:
                 layer.startEditing()
@@ -494,7 +496,7 @@ class Layers( QObject ):
             ndel = layer.selectedFeatureCount()
             if ndel == 0:
                 continue
-            gtype = layer.geometryType()
+            gtype = layer.wkbType()
             if gtype not in geometries:
                 geometries[gtype] = 0
             geometries[gtype] += ndel
@@ -520,7 +522,7 @@ class Layers( QObject ):
             editable = layer.isEditable()
             if not editable:
                 layer.startEditing()
-            for id in layer.selectedFeaturesIds():
+            for id in layer.selectedFeatureIds():
                 layer.deleteFeature(id)
             if not editable:
                 layer.commitChanges()
