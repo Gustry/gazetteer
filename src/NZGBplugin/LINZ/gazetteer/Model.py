@@ -18,8 +18,8 @@ from sqlalchemy.orm import relationship, backref
 import sqlalchemy.sql
 import sqlalchemy.exc
 import sqlalchemy.schema
-import geoalchemy as ga
-from geoalchemy.postgis import PGComparator
+import geoalchemy2 as ga
+from geoalchemy2 import comparator
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Unicode, DateTime
 from sqlalchemy.schema import Table, MetaData, PrimaryKeyConstraint
