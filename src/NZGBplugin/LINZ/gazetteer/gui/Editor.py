@@ -14,6 +14,7 @@
 from __future__ import absolute_import
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 class Editor( QMainWindow ):
 
@@ -59,7 +60,7 @@ class Editor( QMainWindow ):
         dock.raise_()
 
     def showHelp( self, helpfile ):
-        from PyQt5.QtWebKit import QWebView
+        from PyQt5.QtWebKitWidgets import QWebView
         dock = self._helpWindow
         if not dock:
             dock = QDockWidget( "Help", self )

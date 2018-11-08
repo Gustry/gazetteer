@@ -1,5 +1,4 @@
-from __future__ import print_function
-from __future__ import absolute_import
+
 ################################################################################
 #
 # Copyright 2015 Crown copyright (c)
@@ -10,10 +9,12 @@ from __future__ import absolute_import
 # LICENSE file for more information.
 #
 ################################################################################
+from __future__ import with_statement
+from __future__ import print_function
+from __future__ import absolute_import
 
 from builtins import str
 from builtins import object
-from __future__ import with_statement
 
 import sys
 import os.path
@@ -26,7 +27,9 @@ except ImportError:
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import * 
 from PyQt5.QtWebKit import *
+from PyQt5.QtWebKitWidgets import *
 
 from . import DatabaseConfiguration
 

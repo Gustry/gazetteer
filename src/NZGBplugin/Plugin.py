@@ -17,6 +17,7 @@ import os.path
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 
 from qgis.gui import QgsMapToolEmitPoint
 
@@ -24,7 +25,7 @@ from . import Resources
 from .SelectNameTool import SelectNameTool
         
 class Plugin(object):
-
+    # TO DO // much of the below is no longer needed
     Name = "GazetteerEditor"
     LongName="GazetteerEditor plugin for QGIS"
     Version="1.8.2"
@@ -207,12 +208,12 @@ class Plugin(object):
 
     def _run( self ):
         if not self._editorDock:
-            try:
-                self._createEditor()
-            except:
-                message = str(sys.exc_info()[1])
-                QMessageBox.warning(self._iface.mainWindow(),'Gazetteer application error',message)
-            if not self._editorDock:
+            #try: ## TEMP - REMOVED FOR DEBUGGING 
+            self._createEditor()
+            #except: ## TEMP - REMOVED FOR DEBUGGING 
+            #    message = str(sys.exc_info()[1]) ## TEMP - REMOVED FOR DEBUGGING 
+            #    QMessageBox.warning(self._iface.mainWindow(),'Gazetteer application error',message) ## TEMP - REMOVED FOR DEBUGGING 
+            if not self._editorDock: 
                 return
 
         self._editorDock.show()

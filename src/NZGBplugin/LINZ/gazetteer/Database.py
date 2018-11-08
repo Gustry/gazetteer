@@ -6,7 +6,7 @@
 #
 # This program is released under the terms of the new BSD license. See the 
 # LICENSE file for more information.
-#
+#gazetteer
 ################################################################################
 
 from builtins import str
@@ -29,7 +29,7 @@ _port='5432'
 _database=os.environ.get('GAZETTEER_DB') or 'gazetteer'
 _schema=os.environ.get('GAZETTEER_DBSCHEMA') or 'gazetteer'
 _user = os.environ.get('GAZETTEER_DBUSER') or getpass.getuser()
-_password=None
+_password= os.environ.get('GAZETTEER_DBUSERPASS') or None
 _instance = None
 
 func=expression.func

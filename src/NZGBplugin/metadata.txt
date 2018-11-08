@@ -5,5 +5,5 @@ email=ccrook@linz.govt.nz
 author=Chris Crook
 qgisMinimumVersion=3.0
 description=For maintaining the NZGB gazetteer.
-version=version 1.8.2
-experimental=False
+version=version 1.99
+experimental=True

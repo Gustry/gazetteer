@@ -16,6 +16,7 @@ import os.path
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 from qgis.core import *
 
@@ -28,14 +29,14 @@ class Layers( QObject ):
     nameSelected = pyqtSignal( str, name='nameSelected' )
 
     _layerDefs =  [
-        {'id':'fpoly', 'group':'feature', 'table':'feature_polygon','geom':'shape','key':'geom_id', 'form': 'featgeom.ui', 'init': 'openFeatGeomForm', 'wkbtype':QGis.WKBMultiPolygon },
-        {'id':'fline', 'group':'feature', 'table':'feature_line','geom':'shape','key':'geom_id', 'form': 'featgeom.ui', 'init': 'openFeatGeomForm', 'wkbtype':QGis.WKBMultiLineString },
-        {'id':'fpoint', 'group':'feature', 'table':'feature_point','geom':'shape','key':'geom_id', 'form': 'featgeom.ui', 'init': 'openFeatGeomForm', 'wkbtype':QGis.WKBMultiPoint },
-        {'id':'frefpt', 'group':'feature', 'table':'feature_ref_point','geom':'ref_point','key':'feat_id', 'form': 'featrefpt.ui', 'init': 'openFeatRefPointForm', 'wkbtype':QGis.WKBPoint },
-        {'id':'spoly', 'group':'search', 'table':'feature_polygon','geom':'shape','key':'geom_id', 'wkbtype':QGis.WKBMultiPolygon },
-        {'id':'sline', 'group':'search', 'table':'feature_line','geom':'shape','key':'geom_id', 'wkbtype':QGis.WKBMultiLineString },
-        {'id':'spoint', 'group':'search', 'table':'feature_point','geom':'shape','key':'geom_id', 'wkbtype':QGis.WKBMultiPoint },
-        {'id':'srefpt', 'group':'search', 'table':'feature_ref_point','geom':'ref_point','key':'feat_id', 'init': 'openFeatRefPointForm', 'wkbtype':QGis.WKBPoint },
+        {'id':'fpoly', 'group':'feature', 'table':'feature_polygon','geom':'shape','key':'geom_id', 'form': 'featgeom.ui', 'init': 'openFeatGeomForm', 'wkbtype':QgsWkbTypes.MultiPolygon },
+        {'id':'fline', 'group':'feature', 'table':'feature_line','geom':'shape','key':'geom_id', 'form': 'featgeom.ui', 'init': 'openFeatGeomForm', 'wkbtype':QgsWkbTypes.MultiLineString },
+        {'id':'fpoint', 'group':'feature', 'table':'feature_point','geom':'shape','key':'geom_id', 'form': 'featgeom.ui', 'init': 'openFeatGeomForm', 'wkbtype':QgsWkbTypes.MultiPoint },
+        {'id':'frefpt', 'group':'feature', 'table':'feature_ref_point','geom':'ref_point','key':'feat_id', 'form': 'featrefpt.ui', 'init': 'openFeatRefPointForm', 'wkbtype':QgsWkbTypes.Point },
+        {'id':'spoly', 'group':'search', 'table':'feature_polygon','geom':'shape','key':'geom_id', 'wkbtype':QgsWkbTypes.MultiPolygon },
+        {'id':'sline', 'group':'search', 'table':'feature_line','geom':'shape','key':'geom_id', 'wkbtype':QgsWkbTypes.MultiLineString },
+        {'id':'spoint', 'group':'search', 'table':'feature_point','geom':'shape','key':'geom_id', 'wkbtype':QgsWkbTypes.MultiPoint },
+        {'id':'srefpt', 'group':'search', 'table':'feature_ref_point','geom':'ref_point','key':'feat_id', 'init': 'openFeatRefPointForm', 'wkbtype':QgsWkbTypes.Point },
         ]
 
     idProperty='GazetteerLayerType'
@@ -70,7 +71,7 @@ class Layers( QObject ):
         self.setupLayerUris()
 
         self.createLayers()
-        registry = QgsMapLayerRegistry.instance()
+        registry = QgsProject.instance()
         registry.layerWillBeRemoved.connect( self.removeLayer )
         iface.projectRead.connect( self.removeLayers )
         iface.newProjectCreated.connect( self.removeLayers )
@@ -86,7 +87,9 @@ class Layers( QObject ):
         try:
             canvas = self._iface.mapCanvas()
             extent = canvas.extent()
-            transform = QgsCoordinateTransform( canvas.mapSettings().destinationCrs(), self._dbCrs )
+            transform = QgsCoordinateTransform( canvas.mapSettings().destinationCrs(), 
+                                                self._dbCrs,
+                                                QgsProject.instance() )
             self._transform = transform
             mapview = transform.transformBoundingBox( extent )
             rect = QgsGeometry.fromRect( mapview )
@@ -99,7 +102,7 @@ class Layers( QObject ):
 
     def setupLayerUris( self ):
         conn = self._controller.databaseConfiguration()
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         uri.setConnection( 
             conn['host'],
             conn['port'],
@@ -162,7 +165,7 @@ class Layers( QObject ):
             # Check that the data source for the layer is correct
             # If not then remove the layer - it will be replaced with correct
             # data source.
-            uri = QgsDataSourceURI(maplayer.dataProvider().dataSourceUri())
+            uri = QgsDataSourceUri(maplayer.dataProvider().dataSourceUri())
             uri.setSql('feat_id=-1')
             if uri.uri() == glayer['uri']:
                 glayer['layer']=maplayer
@@ -202,12 +205,14 @@ class Layers( QObject ):
                 updated = True
             if 'form' in ldef:
                 layer.setReadOnly(False)
-                layer.setEditForm( os.path.join(self._formdir,ldef['form']) )
-                layer.setEditorLayout(QgsVectorLayer.UiFileLayout)
+                editFormConfig = layer.editFormConfig()
+                editFormConfig.setUiForm( os.path.join(self._formdir,ldef['form']) )
+                editFormConfig.setLayout(editFormConfig.UiFileLayout)
+                if 'init' in ldef:
+                    editFormConfig.setInitFunction(self.initModule+'.'+ldef['init'])
+                layer.setEditFormConfig(editFormConfig)
             else:
                 layer.setReadOnly()
-            if 'init' in ldef:
-                layer.setEditFormInit(self.initModule+'.'+ldef['init'])
 
         # If updated, then add layers to group...
 
@@ -220,18 +225,20 @@ class Layers( QObject ):
         self._layersOk = ok
 
     def moveLayersIntoGroup( self, group, title ):
-        legend = self._iface.legendInterface()
+        root = QgsProject.instance().layerTreeRoot()
+        groups = [group.name() for group in root.findGroups()]
+
         # check if layer title already exists
-        groups=legend.groups()
+        groups = [group.name() for group in root.findGroups()]
         if title not in groups:
-            #add group and store id
-            groupid = legend.addGroup(title)
+            #add group and store ref
+            group_ref=root.addGroup(title)
         else:
-            # get groupid of already existing group
-            groupid=groups.index(title)
+            # get group ref of already existing group
+            group_ref=root.findGroup(title)
         #add layer to group
         for lyr in self.layers(group):
-            legend.moveLayer(lyr,groupid)
+            group_ref.addLayer(lyr)
 
     # Return layer defs in defined order
     def layerDefs( self ):
