@@ -25,14 +25,8 @@ from . import Resources
 from .SelectNameTool import SelectNameTool
         
 class Plugin(object):
-    # TO DO // much of the below is no longer needed
     Name = "GazetteerEditor"
-    LongName="GazetteerEditor plugin for QGIS"
-    Version="1.8.2"
-    QgisMinimumVersion="2.4"
-    Author="ccrook@linz.govt.nz <Chris Crook>"
-    PluginUrl="http://<server>/QgisPluginRepository/GazetteerEditor.zip"
-    Description="Gazetteer database editor"
+    Version="1.8.1"
 
     _menuName="Gazetteer editor"
 
@@ -101,7 +95,7 @@ class Plugin(object):
             "Move feature geometry nodes", self._iface.mainWindow())
         self._editnodes.setWhatsThis("Edit the nodes of the geometries of the current feature")
         self._editnodes.setEnabled( False )
-        self._editnodes.triggered.connect( lambda: self._editGeometries(False, iface.actionNodeTool() ))
+        self._editnodes.triggered.connect( lambda: self._editGeometries(False, iface.actionVertexTool() ))
 
         self._editnew = QAction(QIcon(":/plugins/GazetteerEditor/editnew.png"), 
             "New feature geometries", self._iface.mainWindow())

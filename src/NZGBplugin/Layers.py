@@ -395,7 +395,9 @@ class Layers( QObject ):
             request=QgsFeatureRequest()
             request.setFilterRect(extent)
             attlist=['feat_id','name']
-            request.setSubsetOfAttributes(attlist)
+            fields=layer.fields()
+            request.setSubsetOfAttributes([fields.indexFromName(attlist[0]),
+                                          fields.indexFromName(attlist[1])])
             request.setFlags(QgsFeatureRequest.NoGeometry )
             request.setFlags(QgsFeatureRequest.ExactIntersect)
             # SJ: old vectorLayer API 

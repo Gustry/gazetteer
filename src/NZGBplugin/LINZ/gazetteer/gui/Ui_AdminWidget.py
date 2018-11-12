@@ -139,4 +139,4 @@ class Ui_AdminWidget(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("AdminWidget", "System Codes"))
 
 from LINZ.Widgets.ListModelConnector import ListModelTableView
-from SystemCodeEditorWidget import SystemCodeEditorWidget
+from .SystemCodeEditorWidget import SystemCodeEditorWidget

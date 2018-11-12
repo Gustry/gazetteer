@@ -20,6 +20,8 @@ if __name__ == '__main__':
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets  import *
+
 
 from .Ui_SystemCodeEditorWidget import Ui_SystemCodeEditorWidget
 
